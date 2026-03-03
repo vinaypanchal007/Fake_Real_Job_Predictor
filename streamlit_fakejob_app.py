@@ -1,8 +1,9 @@
 import streamlit as st
 import joblib
 import re
+import pandas as pd
 
-MODEL_PATH = "fakejob_pipeline.joblib"
+MODEL_PATH = "fakejob.joblib"
 
 @st.cache_resource
 def load_model():
@@ -20,50 +21,72 @@ def decide_label(fake_prob):
 
 def is_gibberish(text):
     letters = re.findall(r"[a-zA-Z]", text)
-    return len(letters) / max(len(text), 1) < 0.5
+    return len(letters) / max(len(text), 1) < 0.4
 
-st.set_page_config(page_title="Fake Job Detector", layout="centered")
-st.title("Fake Job Posting Detection")
+st.set_page_config(page_title="Real & Fake Job Detector", layout="centered")
+st.title("Real & Fake Job Posting Detection")
 
 title = st.text_input("Job Title")
 company_profile = st.text_area("Company Profile")
 description = st.text_area("Job Description")
 requirements = st.text_area("Requirements")
 benefits = st.text_area("Benefits")
+location = st.text_input("Location")
+department = st.text_input("Department")
+employment_type = st.text_input("Employment Type")
+required_experience = st.text_input("Required Experience")
+required_education = st.text_input("Required Education")
+industry = st.text_input("Industry")
+function = st.text_input("Function")
+salary_range = st.text_input("Salary Range (e.g. 50000-70000)")
+telecommuting = st.selectbox("Telecommuting Available?", [0, 1])
+has_company_logo = st.selectbox("Has Company Logo?", [0, 1])
+has_questions = st.selectbox("Has Screening Questions?", [0, 1])
 
 if st.button("Predict"):
 
     combined_text = " ".join([
         title,
-        description, description,
-        requirements, requirements,
+        description,
+        requirements,
         company_profile,
         benefits
     ]).strip()
 
-    word_count = len(combined_text.split())
-
-    if word_count < 20:
-        st.error("FAKE JOB POSTING")
-        st.caption("Insufficient job details. Legitimate postings provide full descriptions.")
+    if len(combined_text.split()) < 10:
+        st.warning("Please provide more detailed job information.")
         st.stop()
 
     if is_gibberish(combined_text):
-        st.error("FAKE JOB POSTING")
-        st.caption("Input text is not meaningful.")
+        st.error("Input text appears meaningless.")
         st.stop()
 
-    vector = model.named_steps['tfidf'].transform([combined_text])
-    if vector.nnz < 5:
-        st.error("FAKE JOB POSTING")
-        st.caption("Too few recognizable job-related terms.")
-        st.stop()
+    salary_min = 0
+    if salary_range:
+        try:
+            salary_min = float(salary_range.split('-')[0])
+        except:
+            salary_min = 0
 
-    fake_prob = model.predict_proba([combined_text])[0][1]
+    input_df = pd.DataFrame([{
+        "combined_text": combined_text,
+        "location": location if location else "Unknown",
+        "department": department if department else "Unknown",
+        "employment_type": employment_type if employment_type else "Unknown",
+        "required_experience": required_experience if required_experience else "Unknown",
+        "required_education": required_education if required_education else "Unknown",
+        "industry": industry if industry else "Unknown",
+        "function": function if function else "Unknown",
+        "salary_min": salary_min,
+        "telecommuting": telecommuting,
+        "has_company_logo": has_company_logo,
+        "has_questions": has_questions
+    }])
+
+    fake_prob = model.predict_proba(input_df)[0][1]
     result = decide_label(fake_prob)
 
     st.markdown("### Prediction Result")
-    st.write(f"Fake probability: **{fake_prob:.2f}**")
 
     if result == "Fake Job":
         st.error("FAKE JOB POSTING")
@@ -72,4 +95,4 @@ if st.button("Predict"):
     else:
         st.warning("UNSURE — NEEDS MANUAL REVIEW")
 
-    st.caption("Prediction is based on learned fraud patterns and content quality.")
+    st.caption("Prediction generated using model with text, metadata, salary, and credibility signals.")
