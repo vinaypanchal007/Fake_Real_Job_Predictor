@@ -1,4 +1,4 @@
-# Real_-_Fake_Job_Predictor
+# Real_&_Fake_Job_Predictor
 
 ## Hybrid Machine Learning System for Fraudulent Job Detection
 
