@@ -110,17 +110,6 @@ This improves fraud recall while maintaining strong overall performance.
 
 ---
 
-# Model Performance (Hybrid Tuned Model)
-
-* **Test Accuracy:** ≈ 0.98–0.99
-* **Fraud Precision:** ≈ 0.85+
-* **Fraud Recall:** ≈ 0.85+
-* **ROC-AUC:** ≈ 0.98
-
-The model maintains strong fraud detection performance while minimizing false positives.
-
----
-
 # Decision Logic (Application Layer)
 
 Although the dataset is binary (0 or 1), the deployed web application introduces a third category:
