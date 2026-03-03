@@ -3,6 +3,8 @@ import joblib
 import re
 import pandas as pd
 
+st.set_page_config(page_title="Real & Fake Job Detector", layout="centered")
+
 MODEL_PATH = "fakejob.joblib"
 
 @st.cache_resource
@@ -23,7 +25,6 @@ def is_gibberish(text):
     letters = re.findall(r"[a-zA-Z]", text)
     return len(letters) / max(len(text), 1) < 0.4
 
-st.set_page_config(page_title="Real & Fake Job Detector", layout="centered")
 st.title("Real & Fake Job Posting Detection")
 
 title = st.text_input("Job Title")
@@ -31,6 +32,7 @@ company_profile = st.text_area("Company Profile")
 description = st.text_area("Job Description")
 requirements = st.text_area("Requirements")
 benefits = st.text_area("Benefits")
+
 location = st.text_input("Location")
 department = st.text_input("Department")
 employment_type = st.text_input("Employment Type")
@@ -38,10 +40,16 @@ required_experience = st.text_input("Required Experience")
 required_education = st.text_input("Required Education")
 industry = st.text_input("Industry")
 function = st.text_input("Function")
+
 salary_range = st.text_input("Salary Range (e.g. 50000-70000)")
-telecommuting = st.selectbox("Telecommuting Available?", [0, 1])
-has_company_logo = st.selectbox("Has Company Logo?", [0, 1])
-has_questions = st.selectbox("Has Screening Questions?", [0, 1])
+
+telecommuting = st.selectbox("Telecommuting Available?", ["No", "Yes"])
+has_company_logo = st.selectbox("Has Company Logo?", ["No", "Yes"])
+has_questions = st.selectbox("Has Screening Questions?", ["No", "Yes"])
+
+telecommuting = 1 if telecommuting == "Yes" else 0
+has_company_logo = 1 if has_company_logo == "Yes" else 0
+has_questions = 1 if has_questions == "Yes" else 0
 
 if st.button("Predict"):
 
@@ -64,8 +72,8 @@ if st.button("Predict"):
     salary_min = 0
     if salary_range:
         try:
-            salary_min = float(salary_range.split('-')[0])
-        except:
+            salary_min = float(salary_range.split("-")[0])
+        except ValueError:
             salary_min = 0
 
     input_df = pd.DataFrame([{
